@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="css/materialize.css">
+    <link rel="stylesheet" href="css/form.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="jquery.js"></script>
+    <script src="js/materialize.js"></script>
+    <title>signin</title>
+</head>
+<body>
+    <style>
+        /* .box{
+            position: relative;
+            top: 80px;
+        } */
+    </style>
+    <div class="teal" style="padding: 10px">
+         <h5 class="center-align">signin</h5>
+    </div>
+    <div class="row box">
+    <form method="POST" action="/signin" class="col s4 offset-s4 z-depth-1">
+        <div class="row">
+        <div class="input-field col s12">
+          <input name="email" id="email" type="email" class="validate">
+          <label for="email">Email</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s12">
+          <input name="password" id="password" type="password" class="validate">
+          <label for="password">Password</label>
+        </div>
+      </div>
+      <input class="btn waves-effect" type="submit" value="login">
+    </form>
+  </div>
+</body>
+</html>
