@@ -1,15 +1,18 @@
-var mongoose = require("mongoose");
+const mongoose = require("mongoose");
 // var bcrypt = require("bcrypt");
 // var SALT_FACTOR = 10;
 
-var userSchema = mongoose.Schema({
+const userSchema = mongoose.Schema({
     email : { type: String},
     password : { type: String},
+    displayName:{type:String},
     googleID:{type:String},
     facebookId:{type:String},
     createdAt: { type: Date, default: Date.now()},
+    groups:[],
+    friends:[]
 });
 
 
-var User = mongoose.model("User",userSchema);
+const User = mongoose.model("User",userSchema);
 module.exports = User;

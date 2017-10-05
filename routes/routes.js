@@ -3,11 +3,16 @@ const path = require('path');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.js');
+const Bill = require('../models/bill.js');
 const router = express.Router();
 const jwtSecret = 'teamv8';
 const bcrypt = require('bcrypt');
 router.get('/',(req,res)=>{
-    res.send('server setup for splitbill');
+    if(req.isAuthenticated()){
+        res.send(`Hello ${req.user.email} <a href="/logout">click me</a> to logout `)
+    }
+    else
+    res.send(`<a href="/auth/google">click me</a> and login with google for now`);
 })
 module.exports = router;
 router.get('/signin',(req,res)=>{
@@ -22,7 +27,6 @@ router.post('/signup',(req,res,next)=>{
     User.findOne({email},(err,user)=>{
         if(err)
         console.log(err);
-        debugger
         if(!user){
             // signup the user
             let newUser = new User({
@@ -103,7 +107,7 @@ function(req, res) {
   // Successful authentication, redirect home.
   res.redirect('/');
 });
-
+// logout
 router.get('/logout',(req,res)=>{
     req.logout();
     res.redirect('/')

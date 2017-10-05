@@ -6,11 +6,18 @@ const passport = require('passport');
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const MongoDBStore = require('connect-mongodb-session')(session);
 const mongoose = require('mongoose');
 const routes = require('./routes/routes.js');
+const dataRoutes = require('./routes/data.js');
 const setUpPassport = require('./auth/setuppassport.js');
 mongoose.Promise = global.Promise;
 mongoose.connect("mongodb://localhost:27017/splitbill",{useMongoClient:true});
+const store = new MongoDBStore(
+    {
+      uri: 'mongodb://localhost:27017/splitbill',
+      collection: 'login-sessions'
+    });
 const app = express();
 // app.set("views",path.join(__dirname, "views"));
 // app.set("view engine","pug");
@@ -21,13 +28,15 @@ app.use(cookieParser());
 app.use(session({
     secret:"You know what its called Bentuition!",
     resave:true,
-    saveUninitialized:true
+    saveUninitialized:true,
+    store
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 setUpPassport();
-app.use(routes);
 app.use(express.static(path.join(__dirname,'public')));
+app.use(routes);
+app.use(dataRoutes);
 //mongoose events
 mongoose.connection.on('connected', function () {
  console.log('Mongoose connected');
