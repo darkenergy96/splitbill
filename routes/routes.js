@@ -34,7 +34,7 @@ router.post('/signup',(req,res,next)=>{
     if(req.isAuthenticated()){
         res.redirect('/');
     }
-    let {email,password} = req.body;
+    let {email,password,displayName} = req.body;
     User.findOne({email},(err,user)=>{
         if(err)
         console.log(err);
@@ -42,17 +42,11 @@ router.post('/signup',(req,res,next)=>{
             // signup the user
             let newUser = new User({
                 email,
-                password
+                password,
+                displayName
             });
             newUser.save((err,user)=>{
                 if(err) throw err;
-                // const jwtData = user.email;
-                // const token = jwt.sign(jwtData,jwtSecret);
-                // res.status = 200;
-                // res.cookie('auth',token);
-                // res.json({
-				// 	success: true
-                // });
                 next()
             })
         }

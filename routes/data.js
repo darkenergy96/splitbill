@@ -37,6 +37,54 @@ router.get('/add-friend/:friendEmail',(req,res)=>{//will change to PUT later
         })
     })
 })
+//add friend new 
+router.post('/add-friend',(req,res)=>{
+    let {friendEmail} = req.body;
+    User.findOne({email:friendEmail},(err,friend)=>{
+        if(err) console.log(err);
+        if(!friend){
+            res.json({
+                success:false,
+                message:'No user exists with that email'
+            })
+        }
+      else{
+        friend.friends.push({
+            email:req.user.email,
+            displayName:req.user.displayName
+        });
+        friend.settlements.push({
+            _id:req.user.email,
+            email:req.user.email,
+            displayName:req.user.displayName,
+            dues:[],
+            totalDues:0
+        })
+        friend.save((err,friend)=>{
+            User.findOne({email:req.user.email},(err,user)=>{
+                if(err) console.log(err);
+                user.friends.push({
+                    email:friend.email,
+                    displayName:friend.displayName
+                });
+                user.settlements.push({
+                    _id:friend.email,
+                    email:friend.email,
+                    displayName:friend.displayName,
+                    dues:[],
+                    totalDues:0
+                })
+                user.save(err=>{
+                    if(err) console.log(err)
+                    res.json({
+                        success:true
+                    })
+                })
+            })
+        })
+      }
+    })
+})
 // get user friends
 router.get('/friends',(req,res)=>{
     User.findOne({email},(err,user)=>{
