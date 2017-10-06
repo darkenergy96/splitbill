@@ -11,8 +11,9 @@
 <body>
 
     <div class="teal" style="padding: 10px">
-         <h5 class="center-align">signup</h5>
+         <h5 class="center-align">SignIn</h5>
     </div>
+    <br>
     <div class="row box">
             <% errors.forEach(function(error) { %>
                 <p class="error" role="alert">
@@ -37,12 +38,12 @@
       <input id="submit-button" class="btn waves-effect" type="submit" value="signin">
       </div>
     </form>
-    <p style="text-align:center">New User?<a href="/signup">signup here</a></p>
+    <p style="text-align:center">New User?<a href="/signup"> signup here</a></p>
     <div class="col s6 offset-s3">
         <a href="/auth/google"><img src="img/google-signin.png" class="responsive-img"/></a>
     </div>
     <div class="col s6 offset-s3">
-        <a href="/auth/facebook"><img src="img/facebook-signin.png" class="responsive-img"/></div></a>
+        <a href="/auth/facebook"><img src="img/facebook-signin.png" class="responsive-img"/></a>
     </div>
     </div>
   </div>
