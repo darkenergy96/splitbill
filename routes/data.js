@@ -87,11 +87,20 @@ router.post('/add-friend',(req,res)=>{
 })
 // get user friends
 router.get('/friends',(req,res)=>{
+    let {email} = req.user;
     User.findOne({email},(err,user)=>{
         if(err) throw err;
         res.json(user.friends);
     })
 })
+// get user info
+router.get('/user',(req,res)=>{
+    User.findOne({email:req.user.email}).select({email:1,displayName:1,_id:0}).
+    exec((err,user)=>{
+        if(err) console.log(err);
+        res.json(user)
+    })
+}) 
 router.post('/add-bill',(req,res)=>{ //post a bill
     let billData = new Bill(req.body)
     billData.save((err,billData)=>{
