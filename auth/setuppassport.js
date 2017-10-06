@@ -26,9 +26,12 @@ passport.use("login", new LocalStrategy({
  User.findOne({ email: email }, function(err, user) {
  if (err) { return done(err); }
  if (!user) {
- return done(null, false);
+ return done(null, false,{message:"Incorrect email"});
  }
+ if(user.password === password)
  return done(null, user);
+ else
+ return done(null,false,{message:"Incorrect password"})
  });
 }));
 

@@ -6,6 +6,7 @@ const passport = require('passport');
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const flash = require('connect-flash')
 const MongoDBStore = require('connect-mongodb-session')(session);
 const mongoose = require('mongoose');
 const routes = require('./routes/routes.js');
@@ -19,8 +20,8 @@ const store = new MongoDBStore(
       collection: 'login-sessions'
     });
 const app = express();
-// app.set("views",path.join(__dirname, "views"));
-// app.set("view engine","pug");
+app.set("views",path.join(__dirname, "views"));
+app.set("view engine","ejs");
 app.use(helmet());
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
@@ -31,6 +32,7 @@ app.use(session({
     saveUninitialized:true,
     store
 }));
+app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 setUpPassport();

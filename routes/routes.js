@@ -7,6 +7,7 @@ const Bill = require('../models/bill.js');
 const router = express.Router();
 const jwtSecret = 'teamv8';
 const bcrypt = require('bcrypt');
+const flash  = require("connect-flash");
 router.get('/',(req,res)=>{
     if(req.isAuthenticated()){
         res.send(`Hello ${req.user.email} <a href="/logout">click me</a> to logout `)
@@ -16,13 +17,23 @@ router.get('/',(req,res)=>{
 })
 module.exports = router;
 router.get('/signin',(req,res)=>{
-    res.sendFile(path.join(__dirname,'../public/signin.html'));
+    if(req.isAuthenticated()){
+        res.redirect('/');
+    }
+    res.locals.errors = req.flash('error');
+    res.render('signin')
 });
 router.get('/signup',(req,res)=>{
-    res.sendFile(path.join(__dirname,'../public/signup.html'));
+    if(req.isAuthenticated()){
+        res.redirect('/');
+    }
+    res.locals.errors = req.flash('error');
+    res.render('signup')
 });
 router.post('/signup',(req,res,next)=>{
-    console.log('cool')
+    if(req.isAuthenticated()){
+        res.redirect('/');
+    }
     let {email,password} = req.body;
     User.findOne({email},(err,user)=>{
         if(err)
@@ -46,10 +57,8 @@ router.post('/signup',(req,res,next)=>{
             })
         }
         else{
-            return res.json({
-                success:false,
-                message:'A user with this email already exists'
-            });
+            req.flash('error','A user with this email already exists')
+            res.redirect('/signup');
         }
         
     })
@@ -59,31 +68,12 @@ router.post('/signup',(req,res,next)=>{
     failureFlash:true
 }));
 
-router.post('/signin',(req,res)=>{
-    let {email,password} = req.body;
-    User.findOne({email},(err,user)=>{
-        if(err) throw err
-        if(!user){
-            res.json({
-                success:false,
-                message:'Incorrect Email'
-            })
-        }
-        if(user.password !== password){
-            res.json({
-                success:false,
-                message:'Incorrect Password'
-            })
-        }
-        const jwtData = user.email;
-        const token = jwt.sign(jwtData,jwtSecret);
-        res.cookie('auth',token);
-        res.status = 200;
-        res.json({
-            success: true
-        });
+router.post('/signin',passport.authenticate('login',{
+    successRedirect:'/',
+    failureRedirect:'/signin',
+    failureFlash:true
     })
-})
+)
 
 // google oauth
 router.get('/auth/google',
