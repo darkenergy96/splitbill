@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user.js');
 const Bill = require('../models/bill.js');
+const Group = require('../models/group.js');
 const email = "srksumanth@gmail.com"
 
 // add a friend
@@ -213,4 +214,29 @@ router.get('/smart-settle/:email',(req,res)=>{
         res.json(user.settlements.id(req.params.email));
     })
 });
+
+//groups
+// get groups of a user
+router.post('/create-group',(req,res)=>{
+    let {groupData} = req.body;
+    let newGroup = new Group(groupData);
+    newGroup.save((err,group)=>{
+        if(err) console.log(err);
+        group.people.forEach((person)=>{
+            User.findOne({email:person},(err,user)=>{
+                user.groups.push({
+                    _id:group._id,
+                    name:group.name
+                })
+                user.save(err=>{
+                    if(err) console.log(err);
+                })
+            })
+        })
+        res.json({
+            success:true
+        })
+    })
+
+}) 
 module.exports = router

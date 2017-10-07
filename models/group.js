@@ -1,12 +1,9 @@
 const mongoose = require("mongoose");
-
 const groupSchema = mongoose.Schema({
     name : { type: String},
-    people : [],
+    people :[],
     createdOn:{type:Date,default:Date.now},
-    settlements:[settlementSchema]
+    createdBy:{type:String},
 });
-
-
-const Group = mongoose.model("Group",userSchema);
-module.exports = User;
+const Group = mongoose.model("Group",groupSchema);
+module.exports = Group;
