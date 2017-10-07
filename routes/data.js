@@ -217,6 +217,14 @@ router.get('/smart-settle/:email',(req,res)=>{
 
 //groups
 // get groups of a user
+router.get('/groups',(req,res)=>{
+    User.findOne({email:req.user.email},(err,user)=>{
+        if(err) console.log(err)
+        res.json(user.groups)
+    })
+})
+
+// creatae a group 
 router.post('/create-group',(req,res)=>{
     let {groupData} = req.body;
     let newGroup = new Group(groupData);
