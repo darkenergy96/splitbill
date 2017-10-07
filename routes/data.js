@@ -197,6 +197,16 @@ router.get('/bills/:email',(req,res)=>{
     })
 })
 
+// get bills with a specific user new
+router.get('/bills/:email',(req,res)=>{
+    let {email} = req.params;
+    Bill.find({people:{$all:[req.user.email,email]}},(err,bills)=>{
+        if(err) console.log(err);
+        res.statusCode = 200;
+        res.json(bills);
+    })
+})
+
 // smart settle
 router.get('/smart-settle/:email',(req,res)=>{
     User.findOne({email},(err,user)=>{
