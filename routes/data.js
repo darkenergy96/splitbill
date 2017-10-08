@@ -226,7 +226,7 @@ router.get('/groups',(req,res)=>{
 
 // creatae a group 
 router.post('/create-group',(req,res)=>{
-    let {groupData} = req.body;
+    let groupData = req.body;
     let newGroup = new Group(groupData);
     newGroup.save((err,group)=>{
         if(err) console.log(err);

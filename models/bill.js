@@ -7,6 +7,7 @@ const billSchema = mongoose.Schema({
     details:[],
     settlements:[],
     numOfPeoplePaid:{type:Number},
+    date:{type:Date},
     splitMethod:{type:Number,enum:[1,2]}
 });
 
