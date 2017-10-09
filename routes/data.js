@@ -98,7 +98,7 @@ router.get('/friends',(req,res)=>{
 router.get('/user',(req,res)=>{
     User.findOne({email:req.user.email}).select({email:1,displayName:1,_id:0}).
     exec((err,user)=>{
-        if(err) console.log(err);
+        if(err) console.log(err);                                                                                           
         res.json(user)
     })
 }) 
@@ -117,10 +117,10 @@ router.post('/add-bill',(req,res)=>{ //post a bill
                 User.findOne({email:settlement.receiver},(err,user)=>{
                     if(err) console.log(err)
                     let doc = user.settlements.id(settlement.giver)
-                    let due = doc.dues.id("none");
+                    let due = doc.dues.id(billData.group);
                     if(!due){
                         doc.dues.push({
-                            _id:"none",
+                            _id:billData.group,
                             amount:settlement.amount
                         })
                     }
@@ -129,20 +129,6 @@ router.post('/add-bill',(req,res)=>{ //post a bill
                     }
                     doc.totalDues += settlement.amount
                     console.log('due',due)
-                    // let groupNoneExists = false;
-                    // doc.dues.forEach((due)=>{
-                    //     if(due.group === 'none'){
-                    //         due.amount +=  settlement.amount;
-                    //         groupNoneExists = true;
-                    //     }
-                    // })
-                    // if(!groupNoneExists){
-                    //     doc.dues.push({
-                    //         amount:settlement.amount,
-                    //         group:"none"     
-                    //     })
-                    // }
-                    // doc.totalDues += settlement.amount;
                     user.save(err=>{
                         if(err) console.log(err);
                     });
@@ -151,10 +137,10 @@ router.post('/add-bill',(req,res)=>{ //post a bill
                 User.findOne({email:settlement.giver},(err,user)=>{
                     if(err) console.log(err)
                     let doc = user.settlements.id(settlement.receiver)
-                    let due = doc.dues.id("none");
+                    let due = doc.dues.id(billData.group);
                     if(!due){
                         doc.dues.push({
-                            _id:"none",
+                            _id:billData.group,
                             amount: -settlement.amount
                         })
                     }
@@ -163,41 +149,72 @@ router.post('/add-bill',(req,res)=>{ //post a bill
                     }
                     doc.totalDues -= settlement.amount
                     console.log('due minus',due)
-                    // let groupNoneExists = false;
-                    // doc.dues.forEach((due)=>{
-                    //     if(due.group === 'none'){
-                    //         console.log('done')
-                    //         due.amount -= settlement.amount;
-                    //         groupNoneExists = true;
-                    //     }
-                    // })
-                    // if(!groupNoneExists){
-                    //     doc.dues.push({
-                    //         amount: -settlement.amount,
-                    //         group:"none"     
-                    //     })
-                    // }
-                    // doc.totalDues -= settlement.amount;
                     user.save(err=>{
                         if(err) console.log(err);
                     });
                 })
 
             })
-            res.statusCode = 200;
-            res.json(billData);
+
+            //new stuff below
+            if(billData.group !== "0"){
+                Group.findOne({_id:billData.group},(err,group)=>{
+                    console.log(group)
+                    billData.settlements.forEach((settlement,i)=>{
+                        let giverDoc = group.settlements.id(settlement.giver);
+                        giverDoc.totalDues += settlement.amount;
+                        console.log(giverDoc.totalDues);
+                        let giverDues = giverDoc.dues.id(settlement.receiver);
+                        if(!giverDues){
+                            giverDoc.dues.push({
+                                _id:settlement.receiver,
+                                email:settlement.receiver,
+                                due:settlement.amount
+                            })
+                        }
+                        else
+                        giverDues.due += settlement.amount;
+
+                        let receiverDoc = group.settlements.id(settlement.receiver);
+                        receiverDoc.totalDues -= settlement.amount;
+                        let receiverDues = receiverDoc.dues.id(settlement.giver);
+                        if(!receiverDues){
+                            receiverDoc.dues.push({
+                                _id:settlement.giver,
+                                email:settlement.giver,
+                                due:-settlement.amount
+                            })
+                        }
+                        else
+                        receiverDues.due -= settlement.amount;
+
+                        if(i === billData.settlements.length-1){
+                            group.save((err)=>{
+                                if(err) console.log(err);
+                            })
+                        }
+                        
+                    })
+                   
+                })
+            }
+            //new stuff above 
+            res.json({
+                success:true
+            });
+            
         }
     })
 });
-// get bills with a specific user
-router.get('/bills/:email',(req,res)=>{
-    let {email} = req.params;
-    Bill.find({people:{$all:["srksumanth@gmail.com",email]}},(err,bills)=>{
+//get group bills
+router.get('/groupBills/:groupId',(req,res)=>{
+    let {groupId} = req.params;
+    Bill.find({group:groupId},(err,bills)=>{
+        if(err) console.log(err);
         res.statusCode = 200;
         res.json(bills);
     })
-})
-
+}) 
 // get bills with a specific user new
 router.get('/bills/:email',(req,res)=>{
     let {email} = req.params;
@@ -207,10 +224,9 @@ router.get('/bills/:email',(req,res)=>{
         res.json(bills);
     })
 })
-
 // smart settle
 router.get('/smart-settle/:email',(req,res)=>{
-    User.findOne({email},(err,user)=>{
+    User.findOne({email:req.user.email},(err,user)=>{
         res.json(user.settlements.id(req.params.email));
     })
 });
