@@ -262,5 +262,15 @@ router.post('/create-group',(req,res)=>{
         })
     })
 
+})
+// get group settlements
+router.get('/group/:id',(req,res)=>{
+    Group.findOne({_id:req.params.id},(err,group)=>{
+        if(err) console.log(err);
+        else{
+            res.statusCode = 200;
+            res.json(group)
+        }
+    })
 }) 
 module.exports = router
