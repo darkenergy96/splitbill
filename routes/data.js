@@ -144,7 +144,7 @@ router.post('/add-bill',(req,res)=>{ //post a bill
                     if(err) console.log(err)
                     let doc = user.settlements.id(settlement.receiver)
                     if(!doc){ //if not a friend
-                        User.findOne({email:settlement.giver},(err,giver)=>{
+                        User.findOne({email:settlement.receiver},(err,giver)=>{
                             if(err) console.log(err)
                             user.friends.push({
                                 _id:giver.email,
@@ -308,13 +308,16 @@ router.get('/global-settle/:email',(req,res)=>{
     let involvedGroups = [];
     User.findOne({email:userEmail},(err,user)=>{
         if(err) console.log(err)
+        console.log(user.settlements.id(friendEmail))
         user.settlements.id(friendEmail).dues.forEach(due=>{//get involved groups
             if(due._id !== "0")
             involvedGroups.push({
                 _id:due._id,
                 amount:due.amount
             })
+            
         })
+        console.log('involvedgroups',involvedGroups)
         user.settlements.id(friendEmail).totalDues = 0;
         user.settlements.id(friendEmail).dues = [];
         user.save(err=>{
@@ -325,27 +328,29 @@ router.get('/global-settle/:email',(req,res)=>{
                 friend.settlements.id(userEmail).dues = [];
                 friend.save(err=>{
                     if(err) console.log(err);
+                    involvedGroups.forEach((involvedGroup)=>{
+                        Group.findOne({_id:involvedGroup._id},(err,group)=>{
+                            console.log('x\n',group.settlements.id(userEmail).totalDues);
+                            group.settlements.id(userEmail).totalDues += involvedGroup.amount;
+                            group.settlements.id(userEmail).dues.id(friendEmail).due += involvedGroup.amount;
+                
+                            group.settlements.id(friendEmail).totalDues -= involvedGroup.amount;
+                            group.settlements.id(friendEmail).dues.id(userEmail).due -= involvedGroup.amount;
+                            group.save((err,group)=>{
+                                if(err)
+                                console.log(err);
+                                // console.log('group',group);
+                                res.json({
+                                    success:true
+                                })
+                            })
+                
+                        })
+                    })
                 })
             })
         })
     });
-
-    involvedGroups.forEach((group)=>{
-        Group.findOne({_id:group._id},(err,group)=>{
-            group.settlements.id(userEmail).totalDues += group.amount;
-            group.settlements.id(userEmail).dues.id(friendEmail).due += group.amount;
-
-            group.settlements.id(friendEmail).totalDues -= group.amount;
-            group.settlements.id(friendEmail).dues.id(userEmail).due -= group.amount;
-            group.save(err=>{
-                console.log(err);
-            })
-
-        })
-    })
-    res.json({
-        success:true
-    })
-
+    
 }) 
 module.exports = router
