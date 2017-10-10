@@ -5,52 +5,32 @@ const Bill = require('../models/bill.js');
 const Group = require('../models/group.js');
 const email = "srksumanth@gmail.com"
 
-// add a friend
-router.get('/add-friend/:friendEmail',(req,res)=>{//will change to PUT later
-    let {friendEmail} = req.params;
-    debugger
-    User.findOne({email},(err,user)=>{
-        if(err) throw err;
-        user.friends.push(friendEmail);
-        user.settlements.push({
-            _id:friendEmail,
-            email:friendEmail,
-            dues:[],
-            totalDues:0
-        })
-        user.save(err=>{
-            if(err) throw err
-            User.findOne({email:friendEmail},(err,friend)=>{
-                friend.friends.push(email);
-                friend.settlements.push({
-                    _id:email,
-                    email:email,
-                    dues:[],
-                    totalDues:0
-                })
-                friend.save(err=>{
-                    if(err) throw err
-                    res.json({
-                        success:true
-                    })
-                })
-            })
-        })
-    })
-})
 //add friend new 
 router.post('/add-friend',(req,res)=>{
     let {friendEmail} = req.body;
     User.findOne({email:friendEmail},(err,friend)=>{
         if(err) console.log(err);
         if(!friend){
+
+            // res.statusCode = 400; //bad request
+            console.log(!friend)
             res.json({
                 success:false,
                 message:'No user exists with that email'
             })
         }
       else{
+        //check if already a friend
+        let doc = friend.friends.id(req.user.email)
+        if(doc){
+            return res.json({
+                success:false,
+                message:'Already a friend!!'
+            })
+        } 
+        // add a friend 
         friend.friends.push({
+            _id:req.user.email,
             email:req.user.email,
             displayName:req.user.displayName
         });
@@ -65,6 +45,7 @@ router.post('/add-friend',(req,res)=>{
             User.findOne({email:req.user.email},(err,user)=>{
                 if(err) console.log(err);
                 user.friends.push({
+                    _id:friend.email,
                     email:friend.email,
                     displayName:friend.displayName
                 });
@@ -78,7 +59,8 @@ router.post('/add-friend',(req,res)=>{
                 user.save(err=>{
                     if(err) console.log(err)
                     res.json({
-                        success:true
+                        success:true,
+                        message:'Friend Added Successfully!'
                     })
                 })
             })
@@ -117,45 +99,91 @@ router.post('/add-bill',(req,res)=>{ //post a bill
                 User.findOne({email:settlement.receiver},(err,user)=>{
                     if(err) console.log(err)
                     let doc = user.settlements.id(settlement.giver)
-                    let due = doc.dues.id(billData.group);
-                    if(!due){
-                        doc.dues.push({
-                            _id:billData.group,
-                            amount:settlement.amount
+                    if(!doc){ //if not a friend
+                        User.findOne({email:settlement.giver},(err,giver)=>{
+                            if(err) console.log(err)
+                            user.friends.push({
+                                _id:giver.email,
+                                email:giver.email,
+                                displayName:giver.displayName
+                            })
+                            user.settlements.push({
+                                _id:settlement.giver,
+                                email:settlement.giver,
+                                dues:[{
+                                    _id:billData.group,
+                                    amount:settlement.amount
+                                }],
+                                totalDues:settlement.amount
+                            })
+                            user.save(err=>{
+                                if(err) console.log(err);
+                            });
                         })
                     }
                     else{
-                        due.amount += settlement.amount
+                        let due = doc.dues.id(billData.group);
+                        if(!due){
+                            doc.dues.push({
+                                _id:billData.group,
+                                amount:settlement.amount
+                            })
+                        }
+                        else{
+                            due.amount += settlement.amount
+                        }
+                        doc.totalDues += settlement.amount
+                        user.save(err=>{
+                            if(err) console.log(err);
+                        });
                     }
-                    doc.totalDues += settlement.amount
-                    console.log('due',due)
-                    user.save(err=>{
-                        if(err) console.log(err);
-                    });
+                    // console.log('due',due)
                 })
 
                 User.findOne({email:settlement.giver},(err,user)=>{
                     if(err) console.log(err)
                     let doc = user.settlements.id(settlement.receiver)
-                    let due = doc.dues.id(billData.group);
-                    if(!due){
-                        doc.dues.push({
-                            _id:billData.group,
-                            amount: -settlement.amount
+                    if(!doc){ //if not a friend
+                        User.findOne({email:settlement.giver},(err,giver)=>{
+                            if(err) console.log(err)
+                            user.friends.push({
+                                _id:giver.email,
+                                email:giver.email,
+                                displayName:giver.displayName
+                            })
+                            user.settlements.push({
+                                _id:settlement.receiver,
+                                email:settlement.receiver,
+                                dues:[{
+                                    _id:billData.group,
+                                    amount:-settlement.amount
+                                }],
+                                totalDues:-settlement.amount
+                            })
+                            user.save(err=>{
+                                if(err) console.log(err);
+                            });
                         })
                     }
                     else{
-                        due.amount -= settlement.amount
+                        let due = doc.dues.id(billData.group);
+                        if(!due){
+                            doc.dues.push({
+                                _id:billData.group,
+                                amount:-settlement.amount
+                            })
+                        }
+                        else{
+                            due.amount -= settlement.amount
+                        }
+                        doc.totalDues -= settlement.amount
+                        user.save(err=>{
+                            if(err) console.log(err);
+                        });
                     }
-                    doc.totalDues -= settlement.amount
-                    console.log('due minus',due)
-                    user.save(err=>{
-                        if(err) console.log(err);
-                    });
+                    // console.log('due',due)
                 })
-
             })
-
             //new stuff below
             if(billData.group !== "0"){
                 Group.findOne({_id:billData.group},(err,group)=>{
@@ -272,5 +300,52 @@ router.get('/group/:id',(req,res)=>{
             res.json(group)
         }
     })
+});
+//global settle with a user
+router.get('/global-settle/:email',(req,res)=>{
+    let userEmail = req.user.email;
+    let friendEmail = req.params.email;
+    let involvedGroups = [];
+    User.findOne({email:userEmail},(err,user)=>{
+        if(err) console.log(err)
+        user.settlements.id(friendEmail).dues.forEach(due=>{//get involved groups
+            if(due._id !== "0")
+            involvedGroups.push({
+                _id:due._id,
+                amount:due.amount
+            })
+        })
+        user.settlements.id(friendEmail).totalDues = 0;
+        user.settlements.id(friendEmail).dues = [];
+        user.save(err=>{
+            if(err) console.log(err)
+            User.findOne({email:friendEmail},(err,friend)=>{
+                if(err) console.log(err)
+                friend.settlements.id(userEmail).totalDues = 0;
+                friend.settlements.id(userEmail).dues = [];
+                friend.save(err=>{
+                    if(err) console.log(err);
+                })
+            })
+        })
+    });
+
+    involvedGroups.forEach((group)=>{
+        Group.findOne({_id:group._id},(err,group)=>{
+            group.settlements.id(userEmail).totalDues += group.amount;
+            group.settlements.id(userEmail).dues.id(friendEmail).due += group.amount;
+
+            group.settlements.id(friendEmail).totalDues -= group.amount;
+            group.settlements.id(friendEmail).dues.id(userEmail).due -= group.amount;
+            group.save(err=>{
+                console.log(err);
+            })
+
+        })
+    })
+    res.json({
+        success:true
+    })
+
 }) 
 module.exports = router
