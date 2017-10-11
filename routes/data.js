@@ -364,6 +364,27 @@ router.get('/global-settle/:email',(req,res)=>{
     });
     
 }) 
+// bills summary
+router.get('/summary',(req,res)=>{
+    let {email} = req.user;
+    User.findOne({email}).select({
+        "settlements.totalDues":1,
+        _id:0
+    }).exec((err,summary)=>{
+        if(err) console.log(err);
+        res.json(summary);
+    })
+}) 
+// dashboard
+router.get('/dashboard',(req,res)=>{
+    Bill.find({people:req.user.email},(err,bills)=>{
+        if(err) console.log(err);
+        res.statusCode = 200;
+        res.json(bills);
+    })
+})
+
+
 router.use((req,res)=>{
     res.type('html')
     res.send('<h1 style="text-align:center">404 Error</h1>')
