@@ -4,6 +4,9 @@ const User = require('../models/user.js');
 const Bill = require('../models/bill.js');
 const Group = require('../models/group.js');
 const email = "srksumanth@gmail.com"
+const mgunKey = "key-6b588d97fe36edeb417b5c371609818b";
+const domain = "sandbox839bf3cc29794f40aff3ebefc36a7c30.mailgun.org"
+const mailgun = require("mailgun-js")({apiKey:mgunKey,domain});
 
 //add friend new 
 router.post('/add-friend',(req,res)=>{
@@ -237,7 +240,7 @@ router.post('/add-bill',(req,res)=>{ //post a bill
 //get group bills
 router.get('/groupBills/:groupId',(req,res)=>{
     let {groupId} = req.params;
-    Bill.find({group:groupId},(err,bills)=>{
+    Bill.find({group:groupId}).sort('-date').exec((err,bills)=>{
         if(err) console.log(err);
         res.statusCode = 200;
         res.json(bills);
@@ -246,7 +249,7 @@ router.get('/groupBills/:groupId',(req,res)=>{
 // get bills with a specific user new
 router.get('/bills/:email',(req,res)=>{
     let {email} = req.params;
-    Bill.find({people:{$all:[req.user.email,email]}},(err,bills)=>{
+    Bill.find({people:{$all:[req.user.email,email]}}).sort('-date').exec((err,bills)=>{
         if(err) console.log(err);
         res.statusCode = 200;
         res.json(bills);
@@ -377,7 +380,7 @@ router.get('/summary',(req,res)=>{
 }) 
 // dashboard
 router.get('/dashboard',(req,res)=>{
-    Bill.find({people:req.user.email},(err,bills)=>{
+    Bill.find({people:req.user.email}).sort('-date').exec((err,bills)=>{
         if(err) console.log(err);
         res.statusCode = 200;
         res.json(bills);
@@ -385,7 +388,7 @@ router.get('/dashboard',(req,res)=>{
 })
 // invite a friend
 router.post('/invite',(req,res)=>{
-    let {email} = req.body;
+    let email = req.body.inviteEmail;
     User.findOne({email},(err,user)=>{
         if(err) console.log(err);
         if(!user){//send an email
@@ -395,7 +398,7 @@ router.post('/invite',(req,res)=>{
                 subject: 'Splitbilll Invite', 
                 html: `
                 <p>${req.user.email} invited you to join splitbill</p>
-                <a href="http://localhost:3000/signup/${randomStr}">
+                <a href="http://localhost:3000/signup">
                 Join splitbill
                 </a>
                 `
@@ -419,11 +422,5 @@ router.post('/invite',(req,res)=>{
             })
         }
     })
-})
-
-
-router.use((req,res)=>{
-    res.type('html')
-    res.send('<h1 style="text-align:center">404 Error</h1>')
 })
 module.exports = router

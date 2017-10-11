@@ -12,31 +12,41 @@ const crypto = require('crypto');
 const mgunKey = "key-6b588d97fe36edeb417b5c371609818b";
 const domain = "sandbox839bf3cc29794f40aff3ebefc36a7c30.mailgun.org"
 const mailgun = require("mailgun-js")({apiKey:mgunKey,domain});
-router.get('/',(req,res)=>{
+const Auth = function(req,res,next){
     if(req.isAuthenticated()){
-        res.send(`Hello ${req.user.email} <a href="/logout">click me</a> to logout `)
+        next();
     }
-    else
-    res.send(`<a href="/auth/google">click me</a> and login with google for now`);
+    else{
+        res.redirect('/signin');
+    }
+}
+router.get('/',Auth,(req,res)=>{
+    res.sendFile(path.join(__dirname,'../public/index.html'));
 })
-module.exports = router;
+
 router.get('/signin',(req,res)=>{
     if(req.isAuthenticated()){
         res.redirect('/');
     }
-    res.locals.errors = req.flash('error');
-    res.render('signin')
+    else{
+        res.locals.errors = req.flash('error');
+        res.render('signin')
+    }
+    
 });
 router.get('/signup',(req,res)=>{
     if(req.isAuthenticated()){
         res.redirect('/');
     }
-    res.locals.errors = req.flash('error');
-    res.render('signup')
+    else{
+        res.locals.errors = req.flash('error');
+        res.render('signup')
+    }
+    
 });
 router.post('/signup',(req,res,next)=>{
     if(req.isAuthenticated()){
-        res.redirect('/');
+        return res.redirect('/');
     }
     let {email,password,displayName} = req.body;
     User.findOne({email},(err,user)=>{
@@ -97,8 +107,13 @@ function(req, res) {
 });
 // logout
 router.get('/logout',(req,res)=>{
-    req.logout();
-    res.redirect('/')
+    if(req.isAuthenticated()){
+        req.logout();
+        res.redirect('/')
+    }
+    else{
+        res.redirect('/signin')
+    }
 })
 router.get('/test',(req,res)=>{
     console.log(req.user);
@@ -107,9 +122,17 @@ router.get('/test',(req,res)=>{
 // forgot password
 router.get('/forgot-password',(req,res)=>{
     // res.locals.errors = req.flash('error');
-    res.render('forgot-password')
+    if(req.isAuthenticated()){
+        res.redirect('/')
+    }
+    else{
+        res.render('forgot-password')
+    }
 }) 
 router.post('/forgot-password',(req,res)=>{
+    if(req.isAuthenticated()){
+        return res.redirect('/')
+    }
     let {email} = req.body;
     User.findOne({email},(err,user)=>{
         if(err) console.log(err)
@@ -155,6 +178,9 @@ router.post('/forgot-password',(req,res)=>{
     })
 })
 router.get('/reset-password/:resetStr',(req,res)=>{
+    if(req.isAuthenticated()){
+        return res.redirect('/')
+    }
     let {resetStr} = req.params;
     if(resetStr.length < 8){
         return res.json({
@@ -185,6 +211,9 @@ router.get('/reset-password/:resetStr',(req,res)=>{
     })
 })
 router.post('/reset-password/:resetStr',(req,res)=>{
+    if(req.isAuthenticated()){
+        return res.redirect('/')
+    }
     let {resetStr} = req.params;
     if(resetStr.length < 8){
         return res.json({
@@ -224,4 +253,5 @@ router.post('/reset-password/:resetStr',(req,res)=>{
 router.get('/test1',(req,res)=>{
     res.render('reset-password')
 })
+module.exports = router;
 
