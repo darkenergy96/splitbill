@@ -275,7 +275,8 @@ router.post('/create-group',(req,res)=>{
     newGroup.save((err,group)=>{
         if(err) console.log(err);
         group.people.forEach((person)=>{
-            User.findOne({email:person},(err,user)=>{
+            console.log(person);
+            User.findOne({email:person.email},(err,user)=>{
                 user.groups.push({
                     _id:group._id,
                     name:group.name
@@ -294,6 +295,16 @@ router.post('/create-group',(req,res)=>{
 // get group settlements
 router.get('/group/:id',(req,res)=>{
     Group.findOne({_id:req.params.id},(err,group)=>{
+        if(err) console.log(err);
+        else{
+            res.statusCode = 200;
+            res.json(group)
+        }
+    })
+});
+//get group members
+router.get('/group-people/:id',(req,res)=>{
+    Group.findOne({_id:req.params.id}).select({people:1,_id:0}).exec((err,group)=>{
         if(err) console.log(err);
         else{
             res.statusCode = 200;
@@ -353,4 +364,8 @@ router.get('/global-settle/:email',(req,res)=>{
     });
     
 }) 
+router.use((req,res)=>{
+    res.type('html')
+    res.send('<h1 style="text-align:center">404 Error</h1>')
+})
 module.exports = router
