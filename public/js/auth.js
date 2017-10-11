@@ -26,3 +26,47 @@
 //         }
 //     })
 // })
+// forgot-password page
+$('#forgot-pass').on('submit',function(e){
+    e.preventDefault();
+    let email = $('#email').val();
+    $.ajax({
+        url:'/forgot-password',
+        type:'POST',
+    //    beforeSend:xhr=>{
+    //         xhr.setRequestHeader('content-type','application/json');
+    //     }, 
+        data:{email:email},
+        success:(res)=>{
+            if(res.success){
+                document.getElementById('info').innerHTML = res.message
+                $('#forgot-pass').hide();
+            }
+            else{
+                document.getElementById('warn').innerHTML = res.message;
+            }
+        }
+    })
+        })
+// reset-password
+$('#reset-pass').on('submit',function(e){
+    e.preventDefault();
+    let password = $('#password').val();
+    $.ajax({
+        url:window.location.pathname,
+        type:'POST',
+    //    beforeSend:xhr=>{
+    //         xhr.setRequestHeader('content-type','application/json');
+    //     }, 
+        data:{password:password},
+        success:(res)=>{
+            if(res.success){
+                document.getElementById('reset-info').innerHTML = res.message
+                $('#forgot-pass').hide();
+            }
+            else{
+                document.getElementById('reset-warn').innerHTML = res.message;
+            }
+        }
+    })
+        }) 

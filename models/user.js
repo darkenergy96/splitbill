@@ -16,7 +16,9 @@ const userSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now()},
     groups:[],
     friends:[friendSchema],
-    settlements:[settlementSchema]
+    settlements:[settlementSchema],
+    resetStr:{type:String},
+    expires:{type:Number}
 });
 
 
