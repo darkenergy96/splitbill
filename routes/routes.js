@@ -221,4 +221,7 @@ router.post('/reset-password/:resetStr',(req,res)=>{
         }
     })
 })
+router.get('/test1',(req,res)=>{
+    res.render('reset-password')
+})
 
