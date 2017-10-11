@@ -383,6 +383,43 @@ router.get('/dashboard',(req,res)=>{
         res.json(bills);
     })
 })
+// invite a friend
+router.post('/invite',(req,res)=>{
+    let {email} = req.body;
+    User.findOne({email},(err,user)=>{
+        if(err) console.log(err);
+        if(!user){//send an email
+            const data = {
+                from: 'splitbill <me@samples.mailgun.org>',
+                to: email,
+                subject: 'Splitbilll Invite', 
+                html: `
+                <p>${req.user.email} invited you to join splitbill</p>
+                <a href="http://localhost:3000/signup/${randomStr}">
+                Join splitbill
+                </a>
+                `
+              };
+              mailgun.messages().send(data, function (error, body) {
+                  if(error) throw error
+                  else{
+                console.log(body);
+                res.json({
+                    success:true,
+                    message:`A password reset link is sent to ${email}`
+                })
+                }
+              });
+            
+        }
+        else{
+            res.json({
+                success:false,
+                message:'User already exists!!'
+            })
+        }
+    })
+})
 
 
 router.use((req,res)=>{

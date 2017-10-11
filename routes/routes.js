@@ -125,28 +125,31 @@ router.post('/forgot-password',(req,res)=>{
                 let randomStr = buffer.toString('hex');
                 user.resetStr = randomStr;
                 user.expires = Date.now() + 500000;
-                // send an email here 
-                const data = {
-                    from: 'splitbill <me@samples.mailgun.org>',
-                    to: email,
-                    subject: 'splitbill - password reset link', 
-                    html: `
-                    <p>Hello ${user.displayName} , here is the password reset link</p>
-                    <a href="http://localhost:3000/reset-password/${randomStr}">
-                    http://localhost:3000/reset-password/${randomStr}
-                    </a>
-                    `
-                  };
-                  mailgun.messages().send(data, function (error, body) {
-                      if(error) throw error
-                      else{
-                    console.log(body);
-                    res.json({
-                        success:true,
-                        message:`A password reset link is sent to ${email}`
-                    })
-                    }
-                  });
+                user.save(err=>{
+                    if(err) console.log(err);
+                    const data = {
+                        from: 'splitbill <me@samples.mailgun.org>',
+                        to: email,
+                        subject: 'splitbill - password reset link', 
+                        html: `
+                        <p>Hello ${user.displayName} , here is the password reset link</p>
+                        <a href="http://localhost:3000/reset-password/${randomStr}">
+                        http://localhost:3000/reset-password/${randomStr}
+                        </a>
+                        `
+                      };
+                      mailgun.messages().send(data, function (error, body) {
+                          if(error) throw error
+                          else{
+                        console.log(body);
+                        res.json({
+                            success:true,
+                            message:`A password reset link is sent to ${email}`
+                        })
+                        }
+                      });
+                })
+                
             })
         }
     })
