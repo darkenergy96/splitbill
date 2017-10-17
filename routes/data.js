@@ -5,7 +5,7 @@ const Bill = require('../models/bill.js');
 const Group = require('../models/group.js');
 const email = "srksumanth@gmail.com"
 const mgunKey = "key";
-const domain = "mailgun domain
+const domain = "mailgun domain"
 const mailgun = require("mailgun-js")({apiKey:mgunKey,domain});
 
 //add friend new 
