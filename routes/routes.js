@@ -9,8 +9,8 @@ const jwtSecret = 'teamv8';
 const bcrypt = require('bcrypt');
 const flash  = require("connect-flash");
 const crypto = require('crypto');
-const mgunKey = "key-6b588d97fe36edeb417b5c371609818b";
-const domain = "sandbox839bf3cc29794f40aff3ebefc36a7c30.mailgun.org"
+const mgunKey = "key";
+const domain = "mailgun domain"
 const mailgun = require("mailgun-js")({apiKey:mgunKey,domain});
 const Auth = function(req,res,next){
     if(req.isAuthenticated()){
